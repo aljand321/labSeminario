@@ -29,17 +29,17 @@ public class MenuBaseAdapter extends BaseAdapter implements OnLoadCompleImg {
 
     @Override
     public int getCount() {
-        return 0;
+        return this.list.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return null;
+        return this.list.get( position );
     }
 
     @Override
     public long getItemId(int position) {
-        return 0;
+        return position;
     }
 
     @Override

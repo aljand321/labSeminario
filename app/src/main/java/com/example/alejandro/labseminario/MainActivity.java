@@ -1,15 +1,25 @@
 package com.example.alejandro.labseminario;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Adapter;
+import android.widget.EditText;
+import android.widget.ListView;
 
+import com.example.alejandro.labseminario.ItemMenu.ItemMenuStructure;
 import com.example.alejandro.labseminario.ItemMenu.LoaderImg;
+
+import com.example.alejandro.labseminario.ItemMenu.MenuBaseAdapter;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 
@@ -18,11 +28,24 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import cz.msebera.android.httpclient.Header;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    private ListView List;
+    private ArrayList<ItemMenuStructure> listInfo;
+    private Context root;
+    private MenuBaseAdapter ADAPTER;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().build();
+        StrictMode.setThreadPolicy( policy );
+
+        root = this;
+        listInfo = new ArrayList<ItemMenuStructure>( );
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -37,27 +60,68 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        loaddata();
+       loaddata();
+    }
+
+    private void loaddataResdata(String keystr) {
+
+        AsyncHttpClient client = new AsyncHttpClient();
+        client.get("http://192.168.10.1:7777/api/v1.0/"+keystr, new JsonHttpResponseHandler(){
+
+            @Override
+            public  void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+
+                try {
+                    JSONArray listData = response.getJSONArray( "info" );
+                    for (int i = 0; i < listData.length(); i++) {
+                        JSONObject obj = listData.getJSONObject( i );
+                        String name = obj.getString( "name" );
+                        String cantidad = obj.getString( "quantity" );
+                        ItemMenuStructure item = new ItemMenuStructure( name, cantidad );
+                        listInfo.add( item );
+                    }
+                    ADAPTER = new MenuBaseAdapter( root, listInfo );
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+
+            }       
+
+
+
+        });
     }
 
     private void loaddata() {
-        AsyncHttpClient client = new AsyncHttpClient();
-        client.get("http://192.168.10.1:7777/api/v1.0/food", new JsonHttpResponseHandler(){
-           @Override
-           public  void onSuccess(int statusCode, Header[] headers, JSONObject response){
-               try {
-                   JSONArray listData = response.getJSONArray("info");
-                   for (int i = 0; i< listData.length(); i++){
-                       JSONObject obj = listData.getJSONObject(i);
-                       String name = obj.getString("name");
-                       String cantidad = obj.getString("quantity");
-                   }
-               } catch (JSONException e) {
-                   e.printStackTrace();
-               }
+        List = (ListView) this.findViewById( R.id.foodList );
+        //LISTINFO.add( new ItemList( "https://koreaboo-cdn.storage.googleapis.com/2017/06/yoona-2015.jpg", "prueva", "159", "move" ));
+        EditText search = (EditText) this.findViewById( R.id.edidtxt );
+        //eventos
 
-           }
-        });
+        search.addTextChangedListener( new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                String str = charSequence.toString();
+                loaddataResdata( str );
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        } );
+        ADAPTER = new MenuBaseAdapter( this, listInfo );
+        List.setAdapter( ADAPTER );
     }
 
     @Override

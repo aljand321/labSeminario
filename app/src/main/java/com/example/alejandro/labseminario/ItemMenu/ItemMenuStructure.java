@@ -10,7 +10,7 @@ public class ItemMenuStructure {
     private String id;
     private Bitmap img;
 
-    public ItemMenuStructure(String foodname, String urlimg, int quantity, String id){
+    public ItemMenuStructure(String foodname, String urlimg){
         this.foodname = foodname;
         this.urlimg = urlimg;
         this.quantity = quantity;
